@@ -9,7 +9,6 @@
       "@adonisjs/core",
       "@adonisjs/lucid",
       "@adonisjs/auth",
-      "@adonisjs/http-server"
     ]
   }
 }
