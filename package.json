@@ -1,0 +1,100 @@
+{
+  "name": "@fickou/adonis-audit-database",
+  "version": "1.0.0",
+  "description": "Help dev to filter database with query parameters ",
+  "main": "index.js",
+  "scripts": {
+    "mrm": "mrm --preset=@adonisjs/mrm-preset",
+    "lint": "eslint . --ext=.ts --fix",
+    "pretest": "npm run lint",
+    "test": "node -r @adonisjs/require-ts/build/register japaFile.ts",
+    "test:nyc": "nyc npm run test",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "clean": "del-cli build",
+    "compile": "npm run lint && npm run clean && tsc && npm run copy:files",
+    "build": "npm run compile",
+    "copy:files": "copyfiles 'instructions.md' build",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afidosstar/adonis-audit-database.git"
+  },
+  "keywords": [
+    "adonisjs",
+    "filter",
+    "search",
+    "helper",
+    "database"
+  ],
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Fiacre Dossou AYEDOUN",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/afidosstar/adonis-audit-database/issues"
+  },
+  "homepage": "https://github.com/afidosstar/adonis-audit-database#readme",
+  "devDependencies": {
+    "@adonisjs/auth": "^8.2.2",
+    "@adonisjs/http-server": "^5.11.0",
+    "@adonisjs/lucid": "^18.2.0",
+    "@adonisjs/mrm-preset": "^5.0.3",
+    "@adonisjs/require-ts": "^2.0.13",
+    "@japa/assert": "^1.3.6",
+    "@japa/runner": "^2.2.1",
+    "@types/node": "^18.8.4",
+    "copyfiles": "^2.4.1",
+    "del-cli": "^5.0.0",
+    "eslint": "^8.25.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-adonis": "^2.1.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "japa": "^4.0.0",
+    "japa-cli": "^1.0.1",
+    "mrm": "^4.1.6",
+    "nyc": "^15.1.0",
+    "prettier": "^2.7.1",
+    "reflect-metadata": "^0.1.13",
+    "source-map-support": "^0.5.21",
+    "typescript": "^4.8.4"
+  },
+  "peerDependencies": {
+    "@adonisjs/auth": "^18.2.0",
+    "@adonisjs/core": "^5.8.7",
+    "@adonisjs/http-server": "^5.11.0",
+    "@adonisjs/lucid": "^18.2.0"
+  },
+  "mrmConfig": {
+    "core": false,
+    "license": "MIT",
+    "services": [
+      "circleci"
+    ],
+    "minNodeVersion": "12.0.0",
+    "probotApps": [
+      "stale"
+    ]
+  },
+  "files": [
+    "build/src",
+    "build/providers",
+    "build/adonis-typings",
+    "build/index.d.ts",
+    "build/index.js"
+  ],
+  "types": "build/adonis-typings",
+  "typings": "build/adonis-typings",
+  "adonisjs": {
+    "instructionsMd": "./build/instructions.md",
+    "types": "@fickou/adonis-audit-database",
+    "providers": [
+      "@fickou/adonis-audit-database"
+    ]
+  },
+  "dependencies": {
+    "mongoose": "^6.6.5"
+  }
+}
