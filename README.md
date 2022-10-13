@@ -4,6 +4,8 @@
 [![typescript-image]][typescript-url] 
 [![npm-image]][npm-url] 
 [![license-image]][license-url]
+[![my-coffee-image]][my-coffee-url]
+
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -58,12 +60,15 @@ export default class Package extends BaseModel {
 }
 ```
 
-[typescript-image]: https://img.shields.io/badge/Typescript-294E80.svg?style=for-the-badge&logo=typescript
+[typescript-image]: https://img.shields.io/badge/Typescript-294E80.svg?logo=typescript
 [typescript-url]:  "typescript"
 
-[npm-image]: https://img.shields.io/npm/v/%40fickou%2Fadonis-audit-database.svg?style=for-the-badge&logo=npm
+[npm-image]: https://img.shields.io/npm/v/%40fickou%2Fadonis-audit-database.svg?logo=npm
 [npm-url]: https://www.npmjs.com/package/adonis-request-throttler "npm"
 
-[license-image]: https://img.shields.io/npm/l/%40fickou%2Fadonis-audit-database?color=blueviolet&style=for-the-badge
+[license-image]: https://img.shields.io/npm/l/%40fickou%2Fadonis-audit-database?color=blueviolet
 [license-url]: LICENSE.md "license"
+[my-coffee-image]:https://img.shields.io/badge/-buy_me_a%C2%A0coffee-gray?logo=buy-me-a-coffee
+[my-coffee-url]:https://www.buymeacoffee.com/afidosstar
+
 
