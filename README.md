@@ -25,12 +25,28 @@ Install provider:
 ```bash
 node ace configure @fickou/adonis-audit-database
 ```
+# Configuration 
+Go to `config/audit.ts` and defined you own configuration:
+```ts
+import { AuditConfig } from "@ioc:Adonis/Addons/AuditDatabase";
+import Env from "@ioc:Adonis/Core/Env";
 
+const auditConfig: AuditConfig = {
+    connection: Env.get("AUDIT_CONNECTION","mongo://localhost"),
+    collection: Env.get('AUDIT_COLLECTION',"audit_db"),
+};
+
+export default auditConfig;
+```
 # Sample Usage
 ## Model
 On each model just add `@AuditWatcher()` on top like:
 
 ```ts
+import {BaseModel, column} from '@ioc:Adonis/Lucid/Orm'
+import {AuditWatcher} from "@fickou/adonis-audit-database";
+
+
 @AuditWatcher()
 export default class Package extends BaseModel {
     @column({isPrimary: true})
@@ -38,24 +54,6 @@ export default class Package extends BaseModel {
 
     @column()
     public label: number
-
-    @column()
-    public reference: string
-
-    @column()
-    public masse: number
-
-    @column()
-    public varietyId: number
-
-    @column()
-    public factoryId: number
-
-    @column()
-    public cooperativeId: number
-
-    @column()
-    public campaignId: number
 
 }
 ```
