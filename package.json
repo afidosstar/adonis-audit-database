@@ -22,9 +22,9 @@
   },
   "keywords": [
     "adonisjs",
-    "filter",
-    "search",
-    "helper",
+    "audit",
+    "watcher",
+    "module",
     "database"
   ],
   "private": false,
