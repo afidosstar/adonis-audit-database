@@ -83,7 +83,7 @@ test.group("AdonisJS Audit Db", (group) => {
     assert.equal(provider.connected, true);
   });
   test("Audit provider instance registers instance(s) as expected", async (assert) => {
-    const { AuditWatcher } = await import("../index");
+    const { AuditWatcher } = ioc.resolveBinding("Adonis/Addons/AuditDatabase");
     AuditWatcher({ guard: "jwt" } as any)(Model);
     assert.equal(Model.isAddhook, true);
     assert.equal(Event.isEmitEvent, true);

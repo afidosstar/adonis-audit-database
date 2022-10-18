@@ -1,17 +1,20 @@
-import { LucidModel, LucidRow } from "@ioc:Adonis/Lucid/Orm";
-import { GuardsList } from "@ioc:Adonis/Addons/Auth";
-import { AuditPayload } from "@ioc:Adonis/Addons/AuditDatabase";
-import HttpContext from "@ioc:Adonis/Core/HttpContext";
-import Event from "@ioc:Adonis/Core/Event";
+import {
+  AuditPayload,
+  AuditWatcherContract,
+  AuditWatcherDecorator,
+  AuditWatcherOptions,
+} from "@ioc:Adonis/Addons/AuditDatabase";
 
-export default function AuditWatcher(
-  options: { guard: keyof GuardsList } = { guard: "jwt" } as any
-) {
-  return function (constructor: Function) {
-    const Model = constructor as LucidModel;
+const AuditWatcher: AuditWatcherContract = function (
+  options: AuditWatcherOptions = { guard: "jwt" } as any
+): AuditWatcherDecorator {
+  return function (Model) {
     Model.boot();
     ["update", "create", "delete"].forEach((event) => {
-      Model.$hooks.add("after", event, async function (entity: LucidRow) {
+      Model.$hooks.add("after", event, async function (entity) {
+        const HttpContext = (await import("@ioc:Adonis/Core/HttpContext"))
+          .default;
+        const Event = (await import("@ioc:Adonis/Core/Event")).default;
         const { request, route, auth } = await HttpContext.get()!;
         const user = await (auth.use(options.guard) as any)
           .authenticate()
@@ -30,4 +33,6 @@ export default function AuditWatcher(
       });
     });
   };
-}
+};
+
+export default AuditWatcher;

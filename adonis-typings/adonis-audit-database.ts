@@ -10,6 +10,8 @@
 declare module "@ioc:Adonis/Addons/AuditDatabase" {
   import { RequestContract } from "@ioc:Adonis/Core/Request";
   import { RouteNode } from "@ioc:Adonis/Core/Route";
+  import { GuardsList } from "@ioc:Adonis/Addons/Auth";
+  import { LucidModel } from "@ioc:Adonis/Lucid/Orm";
   export interface AuditPayload {
     request?: RequestContract;
     route?: RouteNode;
@@ -22,4 +24,13 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     connection: string;
     collection: string;
   }
+  export type AuditWatcherOptions = {
+    guard: keyof GuardsList;
+  };
+  export type AuditWatcherDecorator = (constructor: LucidModel) => void;
+
+  export interface AuditWatcherContract {
+    (options: AuditWatcherOptions): AuditWatcherDecorator;
+  }
+  export const AuditWatcher: AuditWatcherContract;
 }

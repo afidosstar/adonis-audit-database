@@ -1,3 +1,3 @@
-import AuditWatcher from "./src/decorator/AuditWatcher";
+import AuditDatabaseProvider from "./providers/AuditDatabaseProvider";
 
-export { AuditWatcher };
+export default AuditDatabaseProvider;

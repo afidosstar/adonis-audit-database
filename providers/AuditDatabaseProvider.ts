@@ -16,12 +16,23 @@ export default class AuditDatabaseProvider {
       .get("audit.connection");
 
     // Connect the instance to DB
-    connect(connection, (err) => {
-      if (!err) {
-        this.isConnected = true;
-        return console.log("mongo database is connected successfully");
+    try {
+      if (connection) {
+        connect(connection, (err) => {
+          if (!err) {
+            this.isConnected = true;
+            return console.log("mongo database is connected successfully");
+          }
+          console.log("fail to connect mongo data Base");
+        });
       }
-      console.log("fail to connect mongo data Base");
+    } catch (e) {
+      console.log(e.message);
+    }
+
+    this.app.container.singleton("Adonis/Addons/AuditDatabase", () => {
+      const { AuditWatcher } = require("../src/decorator/AuditWatcher");
+      return { AuditWatcher };
     });
 
     // Attach it to IOC container as singleton
@@ -33,39 +44,41 @@ export default class AuditDatabaseProvider {
       .use("Adonis/Core/Config")
       .get("audit.collection");
     // All bindings are ready, feel free to use them
-    const Event = this.app.container.resolveBinding("Adonis/Core/Event");
-    const AuditLog = mongoose.model(
-      collection,
-      new Schema({
-        endpoint: String,
-        type: String,
-        intent: String,
-        data: Object,
-        meta: Object,
-        fullName: String,
-        userId: Number,
-        table: String,
-        createdAt: Date,
-      })
-    );
+    if (collection) {
+      const Event = this.app.container.resolveBinding("Adonis/Core/Event");
+      const AuditLog = mongoose.model(
+        collection,
+        new Schema({
+          endpoint: String,
+          type: String,
+          intent: String,
+          data: Object,
+          meta: Object,
+          fullName: String,
+          userId: Number,
+          table: String,
+          createdAt: Date,
+        })
+      );
 
-    Event.on("adonis:audit:data", async (data) => {
-      try {
-        const actionLog = new AuditLog({
-          endpoint: `${data.request?.intended()} ${data.request?.url()}`,
-          intent: (data.route?.meta as any)?.authorizeDescriptor.description,
-          data: data.data,
-          fullName: data.user?.full_name,
-          userId: data.user?.id,
-          table: data.table,
-          createdAt: new Date(),
-          type: data.event,
-        });
-        await actionLog.save();
-      } catch (error) {
-        console.log("error", error);
-      }
-    });
+      Event.on("adonis:audit:data", async (data) => {
+        try {
+          const actionLog = new AuditLog({
+            endpoint: `${data.request?.intended()} ${data.request?.url()}`,
+            intent: (data.route?.meta as any)?.authorizeDescriptor.description,
+            data: data.data,
+            fullName: data.user?.full_name,
+            userId: data.user?.id,
+            table: data.table,
+            createdAt: new Date(),
+            type: data.event,
+          });
+          await actionLog.save();
+        } catch (error) {
+          console.log("error", error);
+        }
+      });
+    }
   }
 
   public async shutdown() {
