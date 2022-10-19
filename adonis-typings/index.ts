@@ -8,5 +8,4 @@
  */
 
 /// <reference path="./adonis-audit-database.ts"/>
-/// <reference path="./mongoose.ts"/>
 /// <reference path="./events.ts"/>
