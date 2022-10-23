@@ -30,7 +30,7 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
   export type AuditWatcherDecorator = (constructor: LucidModel) => void;
 
   export interface AuditWatcherContract {
-    (options: AuditWatcherOptions): AuditWatcherDecorator;
+    (): AuditWatcherDecorator;
   }
   export const AuditWatcher: AuditWatcherContract;
 }
