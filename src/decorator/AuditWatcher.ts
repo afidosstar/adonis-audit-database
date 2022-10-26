@@ -16,7 +16,11 @@ export default function useAuditWatcherDecorator(
           if (container.hasBinding("Adonis/Core/HttpContext")) {
             const HttpContext = container.use("Adonis/Core/HttpContext");
             const Event = container.use("Adonis/Core/Event");
-            const { request, route, auth } = await HttpContext.get()!;
+            const ctx = HttpContext.get();
+            if (!ctx) {
+              return;
+            }
+            const { request, route, auth } = ctx;
             const user: any = await auth.authenticate().catch(() => null);
             if (user) {
               const data: AuditPayload = {
