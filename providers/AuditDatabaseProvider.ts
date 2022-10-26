@@ -1,5 +1,6 @@
 import type { ApplicationContract } from "@ioc:Adonis/Core/Application";
 import mongoose, { Schema, connect } from "mongoose";
+import useAuditWatcherDecorator from "../src/decorator/AuditWatcher";
 
 export default class AuditDatabaseProvider {
   public static needsApplication: boolean = true;
@@ -31,8 +32,7 @@ export default class AuditDatabaseProvider {
     }
 
     this.app.container.singleton("Adonis/Addons/AuditDatabase", () => {
-      const { AuditWatcher } = require("../src/decorator/AuditWatcher");
-      return { AuditWatcher };
+      return { AuditWatcher: useAuditWatcherDecorator(this.app.container)};
     });
 
     // Attach it to IOC container as singleton
