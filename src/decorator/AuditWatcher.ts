@@ -5,7 +5,9 @@ import {
 } from "@ioc:Adonis/Addons/AuditDatabase";
 import { IocContract } from "@adonisjs/fold";
 
-export default function useAuditWatcherDecorator(container: IocContract): AuditWatcherContract {
+export default function useAuditWatcherDecorator(
+  container: IocContract
+): AuditWatcherContract {
   return function (): AuditWatcherDecorator {
     return function (Model) {
       Model.boot();

@@ -32,7 +32,7 @@ export default class AuditDatabaseProvider {
     }
 
     this.app.container.singleton("Adonis/Addons/AuditDatabase", () => {
-      return { AuditWatcher: useAuditWatcherDecorator(this.app.container)};
+      return { AuditWatcher: useAuditWatcherDecorator(this.app.container) };
     });
 
     // Attach it to IOC container as singleton
