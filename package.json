@@ -81,6 +81,7 @@
   "files": [
     "build/src",
     "build/providers",
+    "build/templates",
     "build/adonis-typings",
     "build/index.d.ts",
     "build/index.js",
