@@ -23,7 +23,8 @@ export default class AuditDatabaseProvider {
           this.isConnected = true;
           return console.log("mongo database is connected successfully");
         }
-        console.log("fail to connect mongo data Base");
+        console.log("err", err);
+        console.log("fail to connect mongo data Base to", connection);
       });
     }
 
