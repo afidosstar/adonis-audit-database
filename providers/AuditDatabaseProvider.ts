@@ -17,18 +17,14 @@ export default class AuditDatabaseProvider {
       .get("audit.connection");
 
     // Connect the instance to DB
-    try {
-      if (connection) {
-        connect(connection, (err) => {
-          if (!err) {
-            this.isConnected = true;
-            return console.log("mongo database is connected successfully");
-          }
-          console.log("fail to connect mongo data Base");
-        });
-      }
-    } catch (e) {
-      console.log(e.message);
+    if (connection) {
+      connect(connection, (err) => {
+        if (!err) {
+          this.isConnected = true;
+          return console.log("mongo database is connected successfully");
+        }
+        console.log("fail to connect mongo data Base");
+      });
     }
 
     this.app.container.singleton("Adonis/Addons/AuditDatabase", () => {

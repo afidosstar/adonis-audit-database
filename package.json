@@ -93,7 +93,12 @@
     "types": "@fickou/adonis-audit-database",
     "providers": [
       "@fickou/adonis-audit-database"
-    ]
+    ],
+    "templates": {
+      "config": [
+        "audit.txt"
+      ]
+    }
   },
   "dependencies": {
     "mongoose": "^6.6.5"
