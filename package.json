@@ -13,7 +13,7 @@
     "clean": "del-cli build",
     "compile": "npm run lint && npm run clean && tsc && npm run copy:files",
     "build": "npm run compile",
-    "copy:files": "copyfiles 'instructions.md' build",
+    "copy:files": "copyfiles 'instructions.md' build && copyfiles 'templates/**/*.txt' build",
     "prepublishOnly": "npm run build"
   },
   "repository": {
