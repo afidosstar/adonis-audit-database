@@ -61,7 +61,7 @@ export default class AuditDatabaseProvider {
         try {
           const actionLog = new AuditLog({
             endpoint: `${data.request?.intended()} ${data.request?.url()}`,
-            intent: (data.route?.meta as any)?.authorizeDescriptor.description,
+            intent: (data.route?.meta as any)?.authorizeDescriptor?.description,
             data: data.data,
             fullName: data.user?.full_name,
             userId: data.user?.id,
