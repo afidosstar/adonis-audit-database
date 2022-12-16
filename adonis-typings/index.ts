@@ -9,3 +9,4 @@
 
 /// <reference path="./adonis-audit-database.ts"/>
 /// <reference path="./events.ts"/>
+/// <reference path="./mongoose.ts"/>
