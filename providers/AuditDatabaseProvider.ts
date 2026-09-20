@@ -4,6 +4,7 @@ import mongoose, { Schema, connect } from "mongoose";
 import useAuditWatcherDecorator from "../src/decorator/AuditWatcher";
 import bindAuditHooks from "../src/hooks/bindAuditHooks";
 import AuditExecutionContext from "../src/context/AuditExecutionContext";
+import AuditContextMiddleware from "../src/middleware/AuditContextMiddleware";
 
 export default class AuditDatabaseProvider {
   public static needsApplication: boolean = true;
@@ -37,6 +38,16 @@ export default class AuditDatabaseProvider {
           bindAuditHooks(Model, this.app.container, options),
         AuditExecutionContext,
       };
+    });
+
+    // Middleware global, à référencer par son nom de binding dans kernel.ts
+    // (les imports `@ioc:` ne sont pas réécrits dans node_modules).
+    this.app.container.singleton("Adonis/Addons/AuditDatabase/Context", () => {
+      const config = this.app.container.use("Adonis/Core/Config");
+      return new AuditContextMiddleware({
+        resolveUserId: config.get("audit.resolveUserId"),
+        resolveUserDisplayName: config.get("audit.resolveUserDisplayName"),
+      });
     });
 
     // Attach it to IOC container as singleton
@@ -81,16 +92,19 @@ export default class AuditDatabaseProvider {
       Event.on("adonis:audit:data", async (data: AuditPayload) => {
         try {
           const actionLog = new AuditLog({
-            endpoint: data.request
-              ? `${data.request?.intended()} ${data.request?.url()}`
-              : undefined,
+            endpoint:
+              data.endpoint ??
+              (data.request
+                ? `${data.request.intended()} ${data.request.url()}`
+                : undefined),
             intent: data.intent,
             data: data.data,
             before: data.before,
             after: data.after,
             changed: data.changed,
             fullName: data.fullName ?? data.user?.full_name,
-            userId: data.userId ?? data.user?.id,
+            // `null` explicite (migration, commande) : Mongoose ignore undefined
+            userId: data.userId ?? data.user?.id ?? null,
             origin: data.origin,
             service: data.service,
             requestId: data.requestId,

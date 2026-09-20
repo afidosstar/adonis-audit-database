@@ -87,14 +87,15 @@ export default class ExBaseModel extends BaseModel {
 
 ## HTTP requests: who did what, from which service
 
-Register the provided middleware **after** your auth middleware (e.g.
+Register the provided middleware (exposed by the provider as the IoC binding
+`Adonis/Addons/AuditDatabase/Context`) **after** your auth middleware (e.g.
 `SilentAuth`) in `start/kernel.ts`:
 
 ```ts
 Server.middleware.register([
   () => import("@ioc:Adonis/Core/BodyParser"),
   () => import("App/Middleware/SilentAuth"),
-  () => import("@fickou/adonis-audit-database/build/src/middleware/AuditContextMiddleware"),
+  "Adonis/Addons/AuditDatabase/Context",
 ]);
 ```
 

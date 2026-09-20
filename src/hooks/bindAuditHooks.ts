@@ -150,6 +150,11 @@ async function emitAuditEvent(
     origin: context?.origin ?? (httpRoute ? "http" : "unknown"),
     service: context?.service ?? options.service ?? Model.name,
     requestId: context?.requestId,
+    endpoint:
+      context?.endpoint ??
+      (httpRequest
+        ? `${httpRequest.intended()} ${httpRequest.url()}`
+        : undefined),
     route: httpRoute,
     request: httpRequest,
     intent: label,

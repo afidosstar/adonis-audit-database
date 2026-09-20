@@ -37,6 +37,8 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     event: string;
     /** Libellé métier de la route, résolu via `audit.metaLabelPath`. */
     intent?: string;
+    /** "METHODE /url", fourni par le contexte ou dérivé de `request`. */
+    endpoint?: string;
   }
 
   export interface AuditConfig {
@@ -107,6 +109,7 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     service?: string;
     route?: Record<string, any>;
     requestId?: string;
+    endpoint?: string;
   }
 
   export interface AuditExecutionContextContract {

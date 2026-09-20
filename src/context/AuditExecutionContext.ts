@@ -17,6 +17,8 @@ export interface AuditContextData {
   service?: string;
   route?: Record<string, any>;
   requestId?: string;
+  /** Point d'entrée lisible, ex. "PUT /api/logistics/arrival-orders/12". */
+  endpoint?: string;
 }
 
 const storage = new AsyncLocalStorage<AuditContextData>();
