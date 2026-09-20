@@ -150,7 +150,29 @@ Each affected row is journaled with its before/after state (rows are read
 back with the same filter before writing; inserts use `RETURNING *`, so
 Postgres is assumed). Above `bulkRowLimit` rows, a single
 `bulk_update`/`bulk_delete`/`bulk_create` summary entry is written instead
-(`rowCount`, `ids`, payload). Entries carry `bulk: true`.
+(`rowCount`, `ids`, payload). Entries carry `bulk: true`. Pass
+`redact: ["token", "password"]` to mask sensitive columns.
+
+## Many-to-many relations (`related().sync()/attach()/detach()`)
+
+Pivot writes fire no Lucid hook either. Wrap them:
+
+```ts
+import { auditedSync, auditedAttach, auditedDetach } from "@ioc:Adonis/Addons/AuditDatabase";
+
+await auditedSync(user.related("roles"), roleIds, { intent: "Rôles de l'utilisateur" });
+await auditedDetach(role.related("permissions")); // detach all
+```
+
+One `pivot_sync|pivot_attach|pivot_detach` entry is written on the pivot
+table with `before`/`after` = related ids and `data.added`/`data.removed`.
+
+## Soft deletes
+
+With `adonis-lucid-soft-deletes`, `instance.delete()` saves `deletedAt` then
+runs the delete hooks. The package journals a single `soft_delete` entry
+(`restore` when the column goes back to null) and skips the redundant delete
+hook. Set `softDeleteColumn` if your attribute is not `deletedAt`.
 
 ## Config (`config/audit.ts`)
 
@@ -165,6 +187,7 @@ Postgres is assumed). Above `bulkRowLimit` rows, a single
 | `resolveUserId` | tries `id`/`userId`/`uuid` | `(user) => id` — the shape of your authenticated user belongs to your app, override this |
 | `resolveUserDisplayName` | tries `full_name`/`fullName`/`fullname`/`name`/`username`/`email` | `(user) => displayName` — same idea, override this |
 | `bulkRowLimit` | `50` | Above this many rows, bulk helpers write one summary entry instead of one per row |
+| `softDeleteColumn` | `deletedAt` | Model attribute used by soft deletes (`soft_delete`/`restore` labels, no duplicate entry) |
 
 The default fallbacks exist only so the package works out of the box on a
 first install; any real project should set both explicitly since no two

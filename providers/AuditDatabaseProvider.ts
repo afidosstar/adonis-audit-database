@@ -10,6 +10,7 @@ import {
   auditedInsert,
   auditedUpdate,
 } from "../src/bulk/auditedQueries";
+import { auditedPivot } from "../src/bulk/auditedPivot";
 
 export default class AuditDatabaseProvider {
   public static needsApplication: boolean = true;
@@ -52,6 +53,12 @@ export default class AuditDatabaseProvider {
           rows: any[],
           options?: any
         ) => auditedInsert(this.app.container, client, table, rows, options),
+        auditedSync: (related: any, ids: any, options?: any) =>
+          auditedPivot(this.app.container, related, "sync", ids, options),
+        auditedAttach: (related: any, ids: any, options?: any) =>
+          auditedPivot(this.app.container, related, "attach", ids, options),
+        auditedDetach: (related: any, ids?: any, options?: any) =>
+          auditedPivot(this.app.container, related, "detach", ids, options),
       };
     });
 

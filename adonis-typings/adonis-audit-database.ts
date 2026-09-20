@@ -84,6 +84,13 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
      * rowCount et ids) au lieu d'une entrée par ligne. Défaut : 50.
      */
     bulkRowLimit?: number;
+    /**
+     * Attribut du modèle porté par la suppression logique. Une mise à jour
+     * qui ne change que cette colonne est journalisée "soft_delete" /
+     * "restore", et le hook delete qui suit est ignoré (pas de doublon).
+     * Défaut : "deletedAt".
+     */
+    softDeleteColumn?: string;
   }
 
   export type AuditWatcherOptions = {
@@ -132,7 +139,34 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     service?: string;
     intent?: string;
     primaryKey?: string;
+    /** Colonnes masquées ("[masqué]") dans before/after/data. */
+    redact?: string[];
   }
+  export interface AuditedPivotOptions {
+    table?: string;
+    service?: string;
+    intent?: string;
+  }
+  /**
+   * Relations many-to-many (`instance.related('roles')`) : exécutent
+   * sync/attach/detach et journalisent une entrée `pivot_<action>` sur la
+   * table pivot avec les identifiants avant/après, ajoutés/retirés.
+   */
+  export const auditedSync: (
+    related: any,
+    ids: any,
+    options?: AuditedPivotOptions
+  ) => Promise<void>;
+  export const auditedAttach: (
+    related: any,
+    ids: any,
+    options?: AuditedPivotOptions
+  ) => Promise<void>;
+  export const auditedDetach: (
+    related: any,
+    ids?: any,
+    options?: AuditedPivotOptions
+  ) => Promise<void>;
   /**
    * Écritures en masse auditées (hors hooks d'instance) : le query builder
    * doit déjà être filtré et porter sa transaction. Renvoient le nombre de

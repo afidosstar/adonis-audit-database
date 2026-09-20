@@ -157,11 +157,59 @@ export default function bindAuditHooks(
         beforeUpdateSnapshots.delete(entity);
       }
 
+      // Suppression logique (adonis-lucid-soft-deletes) : delete() fait un
+      // save() qui a déjà émis "soft_delete" via le hook update ; on ignore
+      // le hook delete pour ne pas journaliser deux fois.
+      if (event === "delete" && isSoftDeleted(container, entity)) {
+        return;
+      }
+
       await emitAfterCommit(container, entity.$trx, () =>
         emitAuditEvent(container, Model, entity, event, before, options)
       );
     });
   });
+}
+
+function softDeleteColumn(container: IocContract): string {
+  return container
+    .use("Adonis/Core/Config")
+    .get("audit.softDeleteColumn", "deletedAt");
+}
+
+function isSoftDeleted(container: IocContract, entity: any): boolean {
+  const column = softDeleteColumn(container);
+  const value = entity?.$attributes?.[column];
+  return value !== undefined && value !== null;
+}
+
+// Colonnes techniques mises à jour en même temps qu'une suppression logique.
+const TECHNICAL_COLUMNS = [
+  "updatedAt",
+  "updated_at",
+  "updatedBy",
+  "updated_by",
+];
+
+/** "soft_delete" / "restore" quand seule la colonne de suppression logique change. */
+function labelSoftDelete(
+  container: IocContract,
+  changed: string[] | undefined,
+  after: Record<string, any> | undefined
+): string | undefined {
+  const column = softDeleteColumn(container);
+  if (!changed || !after || !changed.includes(column)) {
+    return undefined;
+  }
+  const onlyTechnical = changed.every(
+    (key) => key === column || TECHNICAL_COLUMNS.includes(key)
+  );
+  if (!onlyTechnical) {
+    return undefined;
+  }
+  return after[column] === null || after[column] === undefined
+    ? "restore"
+    : "soft_delete";
 }
 
 async function emitAuditEvent(
@@ -203,7 +251,7 @@ async function emitAuditEvent(
   const Event = container.use("Adonis/Core/Event");
   await Event.emit("adonis:audit:data", {
     table: Model.table,
-    event,
+    event: labelSoftDelete(container, changed, after) ?? event,
     data: entity.toJSON(),
     before,
     after,

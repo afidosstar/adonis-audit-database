@@ -25,6 +25,30 @@ export interface AuditedBulkOptions {
   intent?: string;
   /** Clé primaire pour le résumé ; celle du modèle ou `id` par défaut. */
   primaryKey?: string;
+  /** Colonnes dont la valeur est masquée dans le journal (secrets, jetons). */
+  redact?: string[];
+}
+
+export function redactRow(
+  row: Record<string, any> | undefined,
+  redact?: string[]
+): Record<string, any> | undefined {
+  if (!row || !redact || redact.length === 0) {
+    return row;
+  }
+  return Object.keys(row).reduce((acc, key) => {
+    acc[key] = redact.includes(key) ? "[masqué]" : row[key];
+    return acc;
+  }, {} as Record<string, any>);
+}
+
+function diffKeys(
+  before: Record<string, any>,
+  after: Record<string, any>
+): string[] {
+  return Object.keys(after).filter(
+    (key) => JSON.stringify(after[key]) !== JSON.stringify(before[key])
+  );
 }
 
 type BulkEvent = "create" | "update" | "delete";
@@ -107,12 +131,14 @@ async function emitBulk(
 
     if (rows.length <= limit) {
       for (const row of rows) {
+        const before = redactRow(row.before, options.redact);
+        const after = redactRow(row.after, options.redact);
         await Event.emit("adonis:audit:data", {
           ...base,
           event,
-          data: row.after ?? row.before ?? {},
-          before: row.before,
-          after: row.after,
+          data: after ?? before ?? {},
+          before,
+          after,
           changed: row.changed,
         } as any);
       }
@@ -140,18 +166,29 @@ export async function auditedUpdate(
   const table = tableOf(query, options);
   const primaryKey = options.primaryKey ?? query?.model?.primaryKey ?? "id";
   const before = await selectRows(query);
-  const result = await query.update(payload);
+
+  // Relecture des lignes écrites (RETURNING *, Postgres) pour journaliser les
+  // valeurs réellement en base (colonnes calculées, updated_at...) ; sinon
+  // fusion ligne + payload.
+  const result =
+    typeof query.returning === "function"
+      ? await query.returning("*").update(payload)
+      : await query.update(payload);
   const rowCount = normalizeCount(result, before.length);
-  const changed = Object.keys(payload);
+  const returned: Record<string, any>[] =
+    Array.isArray(result) && result.length > 0 && typeof result[0] === "object"
+      ? result
+      : [];
+  const afterByKey = new Map(returned.map((row) => [row[primaryKey], row]));
+
   await emitBulk(
     container,
     query.client,
     "update",
-    before.map((row) => ({
-      before: row,
-      after: { ...row, ...payload },
-      changed,
-    })),
+    before.map((row) => {
+      const after = afterByKey.get(row[primaryKey]) ?? { ...row, ...payload };
+      return { before: row, after, changed: diffKeys(row, after) };
+    }),
     rowCount,
     payload,
     options,
