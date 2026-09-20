@@ -4,6 +4,23 @@ import Env from "@ioc:Adonis/Core/Env";
 const auditConfig: AuditConfig = {
   connection: Env.get("AUDIT_CONNECTION", "mongodb://localhost"),
   collection: Env.get("AUDIT_COLLECTION", "audit_db"),
+
+  // Dot-path dans `route.meta` où trouver le libellé métier de la route
+  // (adapter selon le package ACL utilisé par le projet).
+  metaLabelPath: "routePermission.description",
+
+  // Retarde l'émission de l'audit jusqu'au commit de la transaction Lucid en
+  // cours, pour éviter les entrées fantômes en cas de rollback.
+  deferToTransactionCommit: true,
+
+  // Émettre quand même une entrée d'audit si aucun utilisateur n'a pu être
+  // identifié (commandes/migrations sans utilisateur applicatif, par ex.).
+  auditAnonymous: false,
+
+  // La forme du user authentifié appartient à ce projet : à adapter ici,
+  // pas de champ deviné en dur par le package.
+  // resolveUserId: (user) => user.id,
+  // resolveUserDisplayName: (user) => user.full_name,
 };
 
 export default auditConfig;

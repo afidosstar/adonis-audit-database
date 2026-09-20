@@ -1,6 +1,9 @@
 import type { ApplicationContract } from "@ioc:Adonis/Core/Application";
+import type { AuditPayload } from "@ioc:Adonis/Addons/AuditDatabase";
 import mongoose, { Schema, connect } from "mongoose";
 import useAuditWatcherDecorator from "../src/decorator/AuditWatcher";
+import bindAuditHooks from "../src/hooks/bindAuditHooks";
+import AuditExecutionContext from "../src/context/AuditExecutionContext";
 
 export default class AuditDatabaseProvider {
   public static needsApplication: boolean = true;
@@ -11,7 +14,6 @@ export default class AuditDatabaseProvider {
   constructor(protected app: ApplicationContract) {}
 
   public register() {
-    console.log(this.app.container.use("Adonis/Core/Config").get("audit"));
     const connection: string = this.app.container
       .use("Adonis/Core/Config")
       .get("audit.connection");
@@ -29,7 +31,12 @@ export default class AuditDatabaseProvider {
     }
 
     this.app.container.singleton("Adonis/Addons/AuditDatabase", () => {
-      return { AuditWatcher: useAuditWatcherDecorator(this.app.container) };
+      return {
+        AuditWatcher: useAuditWatcherDecorator(this.app.container),
+        registerAuditHooks: (Model: any, options: any = {}) =>
+          bindAuditHooks(Model, this.app.container, options),
+        AuditExecutionContext,
+      };
     });
 
     // Attach it to IOC container as singleton
@@ -37,9 +44,8 @@ export default class AuditDatabaseProvider {
   }
 
   public async boot() {
-    const collection: string = this.app.container
-      .use("Adonis/Core/Config")
-      .get("audit.collection");
+    const Config = this.app.container.use("Adonis/Core/Config");
+    const collection: string = Config.get("audit.collection");
     // All bindings are ready, feel free to use them
     if (collection) {
       const Event = this.app.container.resolveBinding("Adonis/Core/Event");
@@ -50,29 +56,51 @@ export default class AuditDatabaseProvider {
           type: String,
           intent: String,
           data: Object,
+          before: Object,
+          after: Object,
+          changed: [String],
           meta: Object,
           fullName: String,
-          userId: Number,
+          userId: Schema.Types.Mixed,
+          origin: String,
+          service: String,
+          requestId: String,
           table: String,
           createdAt: Date,
         })
       );
 
-      Event.on("adonis:audit:data", async (data) => {
+      const onError: (error: unknown, payload: AuditPayload) => void =
+        Config.get("audit.onError") ??
+        ((error) =>
+          console.log(
+            "[adonis-audit-database] failed to persist audit entry",
+            error
+          ));
+
+      Event.on("adonis:audit:data", async (data: AuditPayload) => {
         try {
           const actionLog = new AuditLog({
-            endpoint: `${data.request?.intended()} ${data.request?.url()}`,
-            intent: (data.route?.meta as any)?.authorizeDescriptor?.description,
+            endpoint: data.request
+              ? `${data.request?.intended()} ${data.request?.url()}`
+              : undefined,
+            intent: data.intent,
             data: data.data,
-            fullName: data.user?.full_name,
-            userId: data.user?.id,
+            before: data.before,
+            after: data.after,
+            changed: data.changed,
+            fullName: data.fullName ?? data.user?.full_name,
+            userId: data.userId ?? data.user?.id,
+            origin: data.origin,
+            service: data.service,
+            requestId: data.requestId,
             table: data.table,
             createdAt: new Date(),
             type: data.event,
           });
           await actionLog.save();
         } catch (error) {
-          console.log("error", error);
+          onError(error, data);
         }
       });
     }
