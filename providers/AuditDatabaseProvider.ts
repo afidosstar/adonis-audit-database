@@ -5,6 +5,11 @@ import useAuditWatcherDecorator from "../src/decorator/AuditWatcher";
 import bindAuditHooks from "../src/hooks/bindAuditHooks";
 import AuditExecutionContext from "../src/context/AuditExecutionContext";
 import AuditContextMiddleware from "../src/middleware/AuditContextMiddleware";
+import {
+  auditedDelete,
+  auditedInsert,
+  auditedUpdate,
+} from "../src/bulk/auditedQueries";
 
 export default class AuditDatabaseProvider {
   public static needsApplication: boolean = true;
@@ -37,6 +42,16 @@ export default class AuditDatabaseProvider {
         registerAuditHooks: (Model: any, options: any = {}) =>
           bindAuditHooks(Model, this.app.container, options),
         AuditExecutionContext,
+        auditedUpdate: (query: any, payload: any, options?: any) =>
+          auditedUpdate(this.app.container, query, payload, options),
+        auditedDelete: (query: any, options?: any) =>
+          auditedDelete(this.app.container, query, options),
+        auditedInsert: (
+          client: any,
+          table: string,
+          rows: any[],
+          options?: any
+        ) => auditedInsert(this.app.container, client, table, rows, options),
       };
     });
 
@@ -76,6 +91,7 @@ export default class AuditDatabaseProvider {
           origin: String,
           service: String,
           requestId: String,
+          bulk: Boolean,
           table: String,
           createdAt: Date,
         })
@@ -108,6 +124,7 @@ export default class AuditDatabaseProvider {
             origin: data.origin,
             service: data.service,
             requestId: data.requestId,
+            bulk: data.bulk === true ? true : undefined,
             table: data.table,
             createdAt: new Date(),
             type: data.event,

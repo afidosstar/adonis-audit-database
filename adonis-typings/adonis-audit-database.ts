@@ -39,6 +39,8 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     intent?: string;
     /** "METHODE /url", fourni par le contexte ou dérivé de `request`. */
     endpoint?: string;
+    /** Émis par les helpers d'écriture en masse (`auditedUpdate`...). */
+    bulk?: boolean;
   }
 
   export interface AuditConfig {
@@ -76,6 +78,12 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
      * fullName, fullname, name, username, email).
      */
     resolveUserDisplayName?: (user: any) => string | null | undefined;
+    /**
+     * Au-delà de ce nombre de lignes, une écriture en masse est journalisée
+     * en un seul résumé (`bulk_update`/`bulk_delete`/`bulk_create` avec
+     * rowCount et ids) au lieu d'une entrée par ligne. Défaut : 50.
+     */
+    bulkRowLimit?: number;
   }
 
   export type AuditWatcherOptions = {
@@ -118,4 +126,31 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     patch(partial: Partial<AuditContextData>): void;
   }
   export const AuditExecutionContext: AuditExecutionContextContract;
+
+  export interface AuditedBulkOptions {
+    table?: string;
+    service?: string;
+    intent?: string;
+    primaryKey?: string;
+  }
+  /**
+   * Écritures en masse auditées (hors hooks d'instance) : le query builder
+   * doit déjà être filtré et porter sa transaction. Renvoient le nombre de
+   * lignes touchées (ou les lignes créées pour l'insertion).
+   */
+  export const auditedUpdate: (
+    query: any,
+    payload: Record<string, any>,
+    options?: AuditedBulkOptions
+  ) => Promise<number>;
+  export const auditedDelete: (
+    query: any,
+    options?: AuditedBulkOptions
+  ) => Promise<number>;
+  export const auditedInsert: (
+    client: any,
+    table: string,
+    rows: Record<string, any>[],
+    options?: AuditedBulkOptions
+  ) => Promise<Record<string, any>[]>;
 }

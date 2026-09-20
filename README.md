@@ -124,6 +124,34 @@ export default class SyncTransportersCommand extends BaseCommand {
 Use `origin: "nats"` in a message listener, `origin: "task"` in a scheduled
 task, etc. Every field is free-form on purpose so it fits any project.
 
+An explicit non-HTTP context is always audited, even with `userId: null`
+(that is the whole point of declaring it); `auditAnonymous` only governs
+HTTP requests without an authenticated user.
+
+## Bulk writes (`query().update()`, `Database.from().update()`, `insert`, `del`)
+
+Lucid hooks only fire on model instances. Query-builder writes bypass them,
+so run them through the audited helpers instead (from the IoC alias):
+
+```ts
+import { auditedUpdate, auditedDelete, auditedInsert } from "@ioc:Adonis/Addons/AuditDatabase";
+
+// same query you would have written, minus the terminal .update()/.del()
+await auditedUpdate(
+  Invoice.query({ client: trx }).where("transporter_id", id),
+  { status: "cancelled" },
+  { intent: "Annulation des factures du transporteur" }
+);
+await auditedDelete(trx.from("arrival_order_lines").where("arrival_order_id", id));
+await auditedInsert(trx, "invoice_lines", rows);
+```
+
+Each affected row is journaled with its before/after state (rows are read
+back with the same filter before writing; inserts use `RETURNING *`, so
+Postgres is assumed). Above `bulkRowLimit` rows, a single
+`bulk_update`/`bulk_delete`/`bulk_create` summary entry is written instead
+(`rowCount`, `ids`, payload). Entries carry `bulk: true`.
+
 ## Config (`config/audit.ts`)
 
 | Key | Default | Purpose |
@@ -136,6 +164,7 @@ task, etc. Every field is free-form on purpose so it fits any project.
 | `onError` | logs to console | Callback invoked when persisting the audit entry fails |
 | `resolveUserId` | tries `id`/`userId`/`uuid` | `(user) => id` — the shape of your authenticated user belongs to your app, override this |
 | `resolveUserDisplayName` | tries `full_name`/`fullName`/`fullname`/`name`/`username`/`email` | `(user) => displayName` — same idea, override this |
+| `bulkRowLimit` | `50` | Above this many rows, bulk helpers write one summary entry instead of one per row |
 
 The default fallbacks exist only so the package works out of the box on a
 first install; any real project should set both explicitly since no two

@@ -17,6 +17,10 @@ const auditConfig: AuditConfig = {
   // identifié (commandes/migrations sans utilisateur applicatif, par ex.).
   auditAnonymous: false,
 
+  // Au-delà de ce nombre de lignes, une écriture en masse (auditedUpdate...)
+  // est résumée en une seule entrée au lieu d'une par ligne.
+  bulkRowLimit: 50,
+
   // La forme du user authentifié appartient à ce projet : à adapter ici,
   // pas de champ deviné en dur par le package.
   // resolveUserId: (user) => user.id,
