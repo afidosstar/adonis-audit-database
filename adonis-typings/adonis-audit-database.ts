@@ -91,6 +91,11 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
      * Défaut : "deletedAt".
      */
     softDeleteColumn?: string;
+    /**
+     * Colonnes/attributs masqués ("[masqué]") dans toutes les entrées
+     * (hooks d'instance et helpers bulk). Défaut : ["password"].
+     */
+    redactColumns?: string[];
   }
 
   export type AuditWatcherOptions = {
@@ -98,6 +103,8 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     service?: string;
     /** Sous-ensemble d'événements à auditer (défaut : create, update, delete). */
     events?: Array<"create" | "update" | "delete">;
+    /** Attributs masqués dans before/after/data, en plus de `audit.redactColumns`. */
+    redact?: string[];
   };
   export type AuditWatcherDecorator = (constructor: LucidModel) => void;
 

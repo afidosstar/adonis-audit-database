@@ -14,6 +14,7 @@ export default function useAuditWatcherDecorator(
       bindAuditHooks(Model, container, {
         service: options?.service,
         events: options?.events,
+        redact: options?.redact,
       });
     };
   };

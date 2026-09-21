@@ -17,6 +17,9 @@ const auditConfig: AuditConfig = {
   // identifié (commandes/migrations sans utilisateur applicatif, par ex.).
   auditAnonymous: false,
 
+  // Attributs jamais journalisés en clair (hachages, jetons).
+  redactColumns: ["password"],
+
   // Au-delà de ce nombre de lignes, une écriture en masse (auditedUpdate...)
   // est résumée en une seule entrée au lieu d'une par ligne.
   bulkRowLimit: 50,

@@ -15,6 +15,7 @@
  */
 import { IocContract } from "@adonisjs/fold";
 import { emitAfterCommit, resolveAuditActor } from "../hooks/bindAuditHooks";
+import redactRow from "../utils/redactRow";
 
 export interface AuditedBulkOptions {
   /** Table journalisée ; déduite du query builder par défaut. */
@@ -27,19 +28,6 @@ export interface AuditedBulkOptions {
   primaryKey?: string;
   /** Colonnes dont la valeur est masquée dans le journal (secrets, jetons). */
   redact?: string[];
-}
-
-export function redactRow(
-  row: Record<string, any> | undefined,
-  redact?: string[]
-): Record<string, any> | undefined {
-  if (!row || !redact || redact.length === 0) {
-    return row;
-  }
-  return Object.keys(row).reduce((acc, key) => {
-    acc[key] = redact.includes(key) ? "[masqué]" : row[key];
-    return acc;
-  }, {} as Record<string, any>);
 }
 
 function diffKeys(
@@ -131,8 +119,12 @@ async function emitBulk(
 
     if (rows.length <= limit) {
       for (const row of rows) {
-        const before = redactRow(row.before, options.redact);
-        const after = redactRow(row.after, options.redact);
+        const redact = [
+          ...Config.get("audit.redactColumns", ["password"]),
+          ...(options.redact ?? []),
+        ];
+        const before = redactRow(row.before, redact);
+        const after = redactRow(row.after, redact);
         await Event.emit("adonis:audit:data", {
           ...base,
           event,

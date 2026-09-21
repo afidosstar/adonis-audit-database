@@ -188,6 +188,7 @@ hook. Set `softDeleteColumn` if your attribute is not `deletedAt`.
 | `resolveUserDisplayName` | tries `full_name`/`fullName`/`fullname`/`name`/`username`/`email` | `(user) => displayName` — same idea, override this |
 | `bulkRowLimit` | `50` | Above this many rows, bulk helpers write one summary entry instead of one per row |
 | `softDeleteColumn` | `deletedAt` | Model attribute used by soft deletes (`soft_delete`/`restore` labels, no duplicate entry) |
+| `redactColumns` | `["password"]` | Attributes masked as `[masqué]` in every entry (`before`/`after`/`data`); per-model `@AuditWatcher({ redact })` / `registerAuditHooks(Model, { redact })` adds to it |
 
 The default fallbacks exist only so the package works out of the box on a
 first install; any real project should set both explicitly since no two

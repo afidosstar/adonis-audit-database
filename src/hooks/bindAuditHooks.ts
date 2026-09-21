@@ -12,6 +12,7 @@ import AuditExecutionContext from "../context/AuditExecutionContext";
 import getByPath from "../utils/getByPath";
 import resolveUserId from "../utils/resolveUserId";
 import resolveUserDisplayName from "../utils/resolveUserDisplayName";
+import redactRow from "../utils/redactRow";
 
 export type AuditableEvent = "create" | "update" | "delete";
 
@@ -20,6 +21,8 @@ export interface BindAuditHooksOptions {
   service?: string;
   /** Sous-ensemble d'événements à auditer (par défaut : les trois). */
   events?: AuditableEvent[];
+  /** Attributs masqués dans before/after/data, en plus de `audit.redactColumns`. */
+  redact?: string[];
 }
 
 /** Qui agit, d'où, et sous quel libellé : partagé par les hooks et les helpers bulk. */
@@ -248,13 +251,22 @@ async function emitAuditEvent(
     before = { ...entity.$attributes } as Record<string, any>;
   }
 
+  // Les hachages/secrets ne doivent jamais atterrir dans le journal : `password`
+  // est masqué par défaut, complété par la config et l'option du modèle.
+  const redact = [
+    ...container
+      .use("Adonis/Core/Config")
+      .get("audit.redactColumns", ["password"]),
+    ...(options.redact ?? []),
+  ];
+
   const Event = container.use("Adonis/Core/Event");
   await Event.emit("adonis:audit:data", {
     table: Model.table,
     event: labelSoftDelete(container, changed, after) ?? event,
-    data: entity.toJSON(),
-    before,
-    after,
+    data: redactRow(entity.toJSON(), redact),
+    before: redactRow(before, redact),
+    after: redactRow(after, redact),
     changed,
     user: { id: actor.userId, full_name: actor.fullName },
     userId: actor.userId,
