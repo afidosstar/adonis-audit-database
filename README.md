@@ -186,6 +186,7 @@ hook. Set `softDeleteColumn` if your attribute is not `deletedAt`.
 | `onError` | logs to console | Callback invoked when persisting the audit entry fails |
 | `resolveUserId` | tries `id`/`userId`/`uuid` | `(user) => id` — the shape of your authenticated user belongs to your app, override this |
 | `resolveUserDisplayName` | tries `full_name`/`fullName`/`fullname`/`name`/`username`/`email` | `(user) => displayName` — same idea, override this |
+| `resolveImpersonatorId` / `resolveImpersonatorName` | none | optional `(ctx) => id` / `(ctx) => name` — real admin when the request impersonates a user; stored as `impersonatorId` / `impersonatorName` (absent otherwise) |
 | `bulkRowLimit` | `50` | Above this many rows, bulk helpers write one summary entry instead of one per row |
 | `softDeleteColumn` | `deletedAt` | Model attribute used by soft deletes (`soft_delete`/`restore` labels, no duplicate entry) |
 | `redactColumns` | `["password"]` | Attributes masked as `[masqué]` in every entry (`before`/`after`/`data`); per-model `@AuditWatcher({ redact })` / `registerAuditHooks(Model, { redact })` adds to it |

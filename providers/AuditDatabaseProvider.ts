@@ -69,6 +69,8 @@ export default class AuditDatabaseProvider {
       return new AuditContextMiddleware({
         resolveUserId: config.get("audit.resolveUserId"),
         resolveUserDisplayName: config.get("audit.resolveUserDisplayName"),
+        resolveImpersonatorId: config.get("audit.resolveImpersonatorId"),
+        resolveImpersonatorName: config.get("audit.resolveImpersonatorName"),
       });
     });
 
@@ -95,6 +97,9 @@ export default class AuditDatabaseProvider {
           meta: Object,
           fullName: String,
           userId: Schema.Types.Mixed,
+          // Administrateur réel en cas d'impersonnalisation (absent sinon)
+          impersonatorId: Schema.Types.Mixed,
+          impersonatorName: String,
           origin: String,
           service: String,
           requestId: String,
@@ -128,6 +133,9 @@ export default class AuditDatabaseProvider {
             fullName: data.fullName ?? data.user?.full_name,
             // `null` explicite (migration, commande) : Mongoose ignore undefined
             userId: data.userId ?? data.user?.id ?? null,
+            // `undefined` si pas d'impersonnalisation : le champ reste absent
+            impersonatorId: data.impersonatorId ?? undefined,
+            impersonatorName: data.impersonatorName ?? undefined,
             origin: data.origin,
             service: data.service,
             requestId: data.requestId,

@@ -75,6 +75,8 @@ export async function auditedPivot(
       user: { id: actor.userId, full_name: actor.fullName },
       userId: actor.userId,
       fullName: actor.fullName,
+      impersonatorId: actor.impersonatorId,
+      impersonatorName: actor.impersonatorName,
       origin: actor.origin,
       service: actor.service,
       requestId: actor.requestId,

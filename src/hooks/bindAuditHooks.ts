@@ -29,6 +29,9 @@ export interface BindAuditHooksOptions {
 export interface AuditActor {
   userId: number | string | null;
   fullName: string | null;
+  /** Administrateur réel en cas d'impersonnalisation (sinon null). */
+  impersonatorId: number | string | null;
+  impersonatorName: string | null;
   origin: string;
   service?: string;
   requestId?: string;
@@ -55,6 +58,8 @@ export async function resolveAuditActor(
   let request: any;
   let userId: any = context?.userId ?? null;
   let fullName: any = context?.fullName ?? null;
+  let impersonatorId: any = context?.impersonatorId ?? null;
+  let impersonatorName: any = context?.impersonatorName ?? null;
 
   // Compatibilité ascendante : aucun AuditExecutionContext actif (middleware
   // non installé dans le projet consommateur) -> on retombe sur l'ancien
@@ -70,6 +75,16 @@ export async function resolveAuditActor(
           user,
           Config.get("audit.resolveUserDisplayName")
         );
+      }
+      // Résolveurs d'impersonnalisation optionnels, appelés avec le ctx HTTP.
+      try {
+        impersonatorId =
+          Config.get("audit.resolveImpersonatorId")?.(ctx) ?? null;
+        impersonatorName =
+          Config.get("audit.resolveImpersonatorName")?.(ctx) ?? null;
+      } catch {
+        impersonatorId = null;
+        impersonatorName = null;
       }
       route = ctx.route;
       request = ctx.request;
@@ -97,6 +112,8 @@ export async function resolveAuditActor(
   return {
     userId: userId ?? null,
     fullName: fullName ?? null,
+    impersonatorId: impersonatorId ?? null,
+    impersonatorName: impersonatorName ?? null,
     origin,
     service: context?.service ?? fallbackService,
     requestId: context?.requestId,
@@ -271,6 +288,8 @@ async function emitAuditEvent(
     user: { id: actor.userId, full_name: actor.fullName },
     userId: actor.userId,
     fullName: actor.fullName,
+    impersonatorId: actor.impersonatorId,
+    impersonatorName: actor.impersonatorName,
     origin: actor.origin,
     service: actor.service,
     requestId: actor.requestId,

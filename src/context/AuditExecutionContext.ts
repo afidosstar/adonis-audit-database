@@ -13,6 +13,9 @@ import { AsyncLocalStorage } from "async_hooks";
 export interface AuditContextData {
   userId?: number | string | null;
   fullName?: string | null;
+  /** Administrateur réel quand l'action est faite en impersonnalisant `userId`. */
+  impersonatorId?: number | string | null;
+  impersonatorName?: string | null;
   origin: "http" | "command" | "task" | "nats" | "migration" | string;
   service?: string;
   route?: Record<string, any>;

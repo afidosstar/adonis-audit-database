@@ -27,10 +27,32 @@ import resolveUserDisplayName, {
 export interface AuditContextMiddlewareConfig {
   resolveUserId?: UserIdResolver;
   resolveUserDisplayName?: UserDisplayNameResolver;
+  /** Optionnels : renvoient l'administrateur réel en cas d'impersonnalisation. */
+  resolveImpersonatorId?: (
+    ctx: HttpContextContract
+  ) => number | string | null | undefined;
+  resolveImpersonatorName?: (
+    ctx: HttpContextContract
+  ) => string | null | undefined;
 }
 
 export default class AuditContextMiddleware {
   constructor(private config: AuditContextMiddlewareConfig = {}) {}
+
+  // Un résolveur défaillant ne doit jamais casser la requête : on ignore l'erreur.
+  private safeResolve<T>(
+    resolver: ((ctx: HttpContextContract) => T) | undefined,
+    ctx: HttpContextContract
+  ): T | null {
+    if (!resolver) {
+      return null;
+    }
+    try {
+      return resolver(ctx) ?? null;
+    } catch {
+      return null;
+    }
+  }
 
   public async handle(
     ctx: HttpContextContract,
@@ -46,6 +68,14 @@ export default class AuditContextMiddleware {
         fullName: resolveUserDisplayName(
           user,
           this.config.resolveUserDisplayName
+        ),
+        impersonatorId: this.safeResolve(
+          this.config.resolveImpersonatorId,
+          ctx
+        ),
+        impersonatorName: this.safeResolve(
+          this.config.resolveImpersonatorName,
+          ctx
         ),
         route: route
           ? { pattern: route.pattern, name: route.name, meta: route.meta }

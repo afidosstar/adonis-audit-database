@@ -30,6 +30,9 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
     user?: Record<string, any>;
     userId?: number | string | null;
     fullName?: string | null;
+    /** Administrateur réel quand l'action est faite en impersonnalisant `userId`. */
+    impersonatorId?: number | string | null;
+    impersonatorName?: string | null;
     origin?: AuditOrigin;
     service?: string;
     requestId?: string;
@@ -79,6 +82,14 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
      */
     resolveUserDisplayName?: (user: any) => string | null | undefined;
     /**
+     * Optionnel : renvoie l'identifiant de l'administrateur réel depuis le
+     * HttpContext quand la requête est faite en impersonnalisant un
+     * utilisateur (null/undefined sinon). Sans résolveur : comportement inchangé.
+     */
+    resolveImpersonatorId?: (ctx: any) => number | string | null | undefined;
+    /** Optionnel : libellé de l'administrateur réel (idem). */
+    resolveImpersonatorName?: (ctx: any) => string | null | undefined;
+    /**
      * Au-delà de ce nombre de lignes, une écriture en masse est journalisée
      * en un seul résumé (`bulk_update`/`bulk_delete`/`bulk_create` avec
      * rowCount et ids) au lieu d'une entrée par ligne. Défaut : 50.
@@ -127,6 +138,8 @@ declare module "@ioc:Adonis/Addons/AuditDatabase" {
   export interface AuditContextData {
     userId?: number | string | null;
     fullName?: string | null;
+    impersonatorId?: number | string | null;
+    impersonatorName?: string | null;
     origin: AuditOrigin;
     service?: string;
     route?: Record<string, any>;
