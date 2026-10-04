@@ -25,6 +25,13 @@ export default class AuditDatabaseProvider {
       .use("Adonis/Core/Config")
       .get("audit.connection");
 
+    // `strictQuery` est lu au `connect()` : sans valeur, Mongoose 6 émet un
+    // avertissement de dépréciation. On pose le défaut de Mongoose 6 (`true`)
+    // seulement si l'application ne l'a pas déjà fixé avant ce provider.
+    if (mongoose.get("strictQuery") === undefined) {
+      mongoose.set("strictQuery", true);
+    }
+
     // Connect the instance to DB
     if (connection) {
       connect(connection, (err) => {
